@@ -1,0 +1,37 @@
+<svg width="120" height="120" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Body -->
+  <circle cx="60" cy="60" r="50" fill="#A7F3D0" />
+  
+  <!-- Face -->
+  <circle cx="60" cy="50" r="25" fill="#ECFDF5" />
+  
+  <!-- Eyes -->
+  <circle cx="48" cy="45" r="5" fill="#059669" />
+  <circle cx="72" cy="45" r="5" fill="#059669" />
+  
+  <!-- Eyebrows -->
+  <path d="M43 38C46 35 51 36 53 38" stroke="#059669" stroke-width="2" stroke-linecap="round" />
+  <path d="M77 38C74 35 69 36 67 38" stroke="#059669" stroke-width="2" stroke-linecap="round" />
+  
+  <!-- Smile -->
+  <path d="M48 60C53 65 67 65 72 60" stroke="#059669" stroke-width="3" stroke-linecap="round" />
+  
+  <!-- Arms -->
+  <path d="M30 70C20 65 15 75 15 85" stroke="#059669" stroke-width="4" stroke-linecap="round" />
+  <path d="M90 70C100 65 105 75 105 85" stroke="#059669" stroke-width="4" stroke-linecap="round" />
+  
+  <!-- Plastic Bottle -->
+  <rect x="40" y="85" width="40" height="20" rx="5" fill="#60A5FA" fill-opacity="0.6" />
+  <rect x="45" y="80" width="30" height="5" rx="2" fill="#60A5FA" fill-opacity="0.6" />
+  <path d="M55 80L55 75C55 73.8954 55.8954 73 57 73H63C64.1046 73 65 73.8954 65 75V80" stroke="#60A5FA" stroke-opacity="0.6" stroke-width="2" />
+  
+  <!-- Recycle Symbol -->
+  <path d="M60 95L65 90L60 85L55 90L60 95Z" fill="#FFFFFF" />
+  <path d="M60 95L65 90L60 85L55 90L60 95Z" stroke="#10B981" stroke-width="1" />
+  <path d="M58 90L60 92L62 90" stroke="#10B981" stroke-width="1" stroke-linecap="round" />
+  
+  <!-- Cape -->
+  <path d="M35 50C25 60 20 80 25 100" stroke="#F59E0B" stroke-width="3" stroke-linecap="round" />
+  <path d="M85 50C95 60 100 80 95 100" stroke="#F59E0B" stroke-width="3" stroke-linecap="round" />
+  <path d="M35 50C45 45 75 45 85 50" stroke="#F59E0B" stroke-width="3" stroke-linecap="round" />
+</svg>
