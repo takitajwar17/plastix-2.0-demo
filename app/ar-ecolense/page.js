@@ -96,10 +96,7 @@ export default function AREcoLense() {
       {/* Header */}
       <header className="w-full py-6 px-4 sm:px-6 lg:px-8 flex justify-between items-center">
         <div className="flex items-center">
-          <div className="mr-2 float">
-            <Image src="/mascot.svg" width={50} height={50} alt="Plastix Mascot" className="bounce" />
-          </div>
-          <h1 className="text-2xl font-bold text-green-600 wiggle">AR EcoLens</h1>
+          <h1 className="text-2xl font-bold text-green-600">AR EcoLens</h1>
         </div>
         <nav>
           <ul className="flex space-x-6">
