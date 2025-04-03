@@ -16,14 +16,11 @@ export async function GET() {
       return ['.jpg', '.jpeg', '.png'].includes(ext);
     });
     
-    // Randomly shuffle the array of image files
-    const shuffledImages = [...imageFiles].sort(() => Math.random() - 0.5);
-    
-    // Take the first 4 images after shuffling and map them to numbers 1-4
-    const randomNumberedFiles = shuffledImages.slice(0, 4).map((file, index) => `image-${index + 1}${path.extname(file)}`);
+    // Take the first 4 images and map them to numbers 1-4
+    const numberedFiles = imageFiles.slice(0, 4).map((file, index) => `image-${index + 1}${path.extname(file)}`);
     
     return NextResponse.json({
-      images: randomNumberedFiles
+      images: numberedFiles
     });
   } catch (error) {
     console.error('Error reading images directory:', error);

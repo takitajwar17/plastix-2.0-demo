@@ -42,10 +42,8 @@ export default function AREcoLense() {
     loadAvailableImages();
   }, []);
 
-  // Randomly select 3 images
-  const pollutedImages = [...allPollutedImages]
-    .sort(() => Math.random() - 0.5)
-    .slice(0, 4);
+  // Select first 4 images in sequential order
+  const pollutedImages = allPollutedImages.slice(0, 4);
 
   // Function to simulate progress with varying speeds - reduced to 10-15 seconds total
   const simulateProgress = () => {
