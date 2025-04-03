@@ -11,10 +11,20 @@ export default function AREcoLense() {
   const progressIntervalRef = useRef(null);
   
   // Available polluted images
-  const pollutedImages = [
-    { id: 1, src: "/assets/raw/image-1.png", cleanSrc: "/assets/clean/image-1.png" },
-    { id: 2, src: "/assets/raw/image-2.png", cleanSrc: "/assets/clean/image-1.png" } // Using image-1 as clean for both as per requirements
+  const allPollutedImages = [
+    { id: 1, src: "/assets/raw/image-1.jpg", cleanSrc: "/assets/clean/image-1.jpg" },
+    { id: 2, src: "/assets/raw/image-2.jpg", cleanSrc: "/assets/clean/image-2.jpg" },
+    { id: 3, src: "/assets/raw/image-3.jpg", cleanSrc: "/assets/clean/image-3.jpg" },
+    { id: 4, src: "/assets/raw/image-4.jpg", cleanSrc: "/assets/clean/image-4.jpg" },
+    { id: 5, src: "/assets/raw/image-5.jpg", cleanSrc: "/assets/clean/image-5.jpg" },
+    { id: 6, src: "/assets/raw/image-6.jpg", cleanSrc: "/assets/clean/image-6.jpg" },
+    { id: 7, src: "/assets/raw/image-7.jpg", cleanSrc: "/assets/clean/image-7.jpg" }
   ];
+
+  // Randomly select 3 images
+  const pollutedImages = [...allPollutedImages]
+    .sort(() => Math.random() - 0.5)
+    .slice(0, 4);
 
   // Function to simulate progress with varying speeds - reduced to 10-15 seconds total
   const simulateProgress = () => {
