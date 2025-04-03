@@ -23,10 +23,12 @@ export default function AREcoLense() {
         
         if (data.images) {
           // Create image pairs from the available images
+          // Map the actual filenames to static numbers 1-4
           const imagePairs = data.images.map((filename, index) => ({
             id: index + 1,
             src: `/assets/raw/${filename}`,
-            cleanSrc: `/assets/clean/${filename}`
+            cleanSrc: `/assets/clean/${filename}`,
+            displayNumber: index + 1 // Add static display number
           }));
           setAllPollutedImages(imagePairs);
         }
@@ -40,10 +42,10 @@ export default function AREcoLense() {
     loadAvailableImages();
   }, []);
 
-  // Randomly select 3 images
+  // Select first 4 images and sort them by displayNumber to ensure sequential order
   const pollutedImages = [...allPollutedImages]
-    .sort(() => Math.random() - 0.5)
-    .slice(0, 4);
+    .slice(0, 4)
+    .sort((a, b) => a.displayNumber - b.displayNumber);
 
   // Function to simulate progress with varying speeds - reduced to 10-15 seconds total
   const simulateProgress = () => {
@@ -168,7 +170,7 @@ export default function AREcoLense() {
                       className="w-full h-full object-cover rounded"
                     />
                   </div>
-                  <p className="text-center mt-2 text-sm text-gray-600">Polluted Image {image.id}</p>
+                  <p className="text-center mt-2 text-sm text-gray-600">Polluted Image {image.displayNumber}</p>
                 </div>
               ))}
             </div>

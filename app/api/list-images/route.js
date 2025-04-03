@@ -16,8 +16,11 @@ export async function GET() {
       return ['.jpg', '.jpeg', '.png'].includes(ext);
     });
     
+    // Map the actual filenames to static numbers 1-4
+    const staticNumberedFiles = imageFiles.slice(0, 4).map((file, index) => file);
+    
     return NextResponse.json({
-      images: imageFiles
+      images: staticNumberedFiles
     });
   } catch (error) {
     console.error('Error reading images directory:', error);
