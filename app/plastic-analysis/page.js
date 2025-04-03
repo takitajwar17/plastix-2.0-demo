@@ -125,57 +125,187 @@ export default function PlasticAnalysis() {
     }
   };
 
+  // Get appropriate icon based on recycling code
+  const getPlasticIcon = (code) => {
+    // Default icon if code is unknown
+    if (!code || code === "Unknown") {
+      return (
+        <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+        </svg>
+      );
+    }
+
+    // Convert code to number if it's a string
+    const codeNum = parseInt(code, 10);
+    
+    // Return appropriate icon based on recycling code
+    switch(codeNum) {
+      case 1: // PET
+        return (
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-blue-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z" />
+            <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v8M8 12h8" />
+          </svg>
+        );
+      case 2: // HDPE
+        return (
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-green-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z" />
+            <path strokeLinecap="round" strokeLinejoin="round" d="M9.5 8.5L12 6l2.5 2.5M12 6v12" />
+          </svg>
+        );
+      case 3: // PVC
+        return (
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-red-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z" />
+            <path strokeLinecap="round" strokeLinejoin="round" d="M7 9l5 6 5-6" />
+          </svg>
+        );
+      case 4: // LDPE
+        return (
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-yellow-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z" />
+            <path strokeLinecap="round" strokeLinejoin="round" d="M8 10h8M8 14h8" />
+          </svg>
+        );
+      case 5: // PP
+        return (
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-purple-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z" />
+            <path strokeLinecap="round" strokeLinejoin="round" d="M12 16V8M8 10h8" />
+          </svg>
+        );
+      case 6: // PS
+        return (
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-orange-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z" />
+            <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v8M15 12H9" />
+          </svg>
+        );
+      case 7: // Other
+        return (
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-gray-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z" />
+            <path strokeLinecap="round" strokeLinejoin="round" d="M12 16v.01M12 12v-4" />
+          </svg>
+        );
+      default:
+        return (
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+          </svg>
+        );
+    }
+  };
+
+  // Get color scheme based on recycling code
+  const getColorScheme = (code) => {
+    if (!code || code === "Unknown") return { bg: "bg-gray-100", border: "border-gray-300", text: "text-gray-800" };
+    
+    const codeNum = parseInt(code, 10);
+    
+    switch(codeNum) {
+      case 1: // PET
+        return { bg: "bg-blue-50", border: "border-blue-200", text: "text-blue-800" };
+      case 2: // HDPE
+        return { bg: "bg-green-50", border: "border-green-200", text: "text-green-800" };
+      case 3: // PVC
+        return { bg: "bg-red-50", border: "border-red-200", text: "text-red-800" };
+      case 4: // LDPE
+        return { bg: "bg-yellow-50", border: "border-yellow-200", text: "text-yellow-800" };
+      case 5: // PP
+        return { bg: "bg-purple-50", border: "border-purple-200", text: "text-purple-800" };
+      case 6: // PS
+        return { bg: "bg-orange-50", border: "border-orange-200", text: "text-orange-800" };
+      case 7: // Other
+        return { bg: "bg-gray-50", border: "border-gray-200", text: "text-gray-800" };
+      default:
+        return { bg: "bg-gray-50", border: "border-gray-200", text: "text-gray-800" };
+    }
+  };
+
   // Function to render the plastic analysis results in a structured format
   const renderPlasticAnalysis = () => {
     if (!analysisResult || !analysisResult.plastics || analysisResult.plastics.length === 0) {
       return null;
     }
 
-    return analysisResult.plastics.map((plastic, index) => (
-      <div key={index} className="mb-6 last:mb-0 bg-white p-4 rounded-lg shadow-sm">
-        <div className="flex items-center mb-3">
-          <div className="bg-purple-100 p-2 rounded-full mr-3">
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-            </svg>
+    return analysisResult.plastics.map((plastic, index) => {
+      const colors = getColorScheme(plastic.recyclingCode);
+      
+      return (
+        <div key={index} className={`mb-8 last:mb-0 ${colors.bg} border ${colors.border} p-6 rounded-xl shadow-md transition-all hover:shadow-lg`}>
+          <div className="flex flex-col sm:flex-row items-start sm:items-center mb-4 gap-3">
+            <div className={`p-3 rounded-full ${colors.bg} border ${colors.border}`}>
+              {getPlasticIcon(plastic.recyclingCode)}
+            </div>
+            
+            <div className="flex-grow">
+              <h4 className={`text-xl font-bold ${colors.text}`}>{plastic.plasticType}</h4>
+              <p className="text-gray-500 text-sm mt-1">Identification and Classification</p>
+            </div>
+            
+            <div className={`${colors.bg} ${colors.text} text-sm font-bold px-4 py-2 rounded-full border ${colors.border} flex items-center gap-1`}>
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+              </svg>
+              Code {plastic.recyclingCode}
+            </div>
           </div>
-          <h4 className="text-lg font-semibold text-gray-900">{plastic.plasticType}</h4>
-          <div className="ml-auto bg-blue-100 text-blue-800 text-sm font-medium px-3 py-1 rounded-full">
-            Recycling Code: {plastic.recyclingCode}
-          </div>
-        </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-          <div className="space-y-3">
-            <div>
-              <h5 className="text-sm font-medium text-gray-700 mb-1">Common Uses</h5>
-              <ul className="list-disc pl-5 text-gray-600 text-sm space-y-1">
-                {plastic.commonUses.map((use, i) => (
-                  <li key={i}>{use}</li>
-                ))}
-              </ul>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
+            <div className="space-y-4">
+              <div className="bg-white bg-opacity-60 p-4 rounded-lg border border-gray-100 shadow-sm">
+                <h5 className={`${colors.text} font-semibold flex items-center gap-2 mb-3`}>
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                  </svg>
+                  Common Uses
+                </h5>
+                <ul className="list-disc pl-5 text-gray-700 space-y-2">
+                  {plastic.commonUses.map((use, i) => (
+                    <li key={i} className="leading-relaxed">{use}</li>
+                  ))}
+                </ul>
+              </div>
+              
+              <div className="bg-white bg-opacity-60 p-4 rounded-lg border border-gray-100 shadow-sm">
+                <h5 className={`${colors.text} font-semibold flex items-center gap-2 mb-3`}>
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                  </svg>
+                  Recyclability
+                </h5>
+                <p className="text-gray-700 leading-relaxed">{plastic.recyclability}</p>
+              </div>
             </div>
             
-            <div>
-              <h5 className="text-sm font-medium text-gray-700 mb-1">Recyclability</h5>
-              <p className="text-gray-600 text-sm">{plastic.recyclability}</p>
-            </div>
-          </div>
-          
-          <div className="space-y-3">
-            <div>
-              <h5 className="text-sm font-medium text-gray-700 mb-1">Environmental Impact</h5>
-              <p className="text-gray-600 text-sm">{plastic.environmentalImpact}</p>
-            </div>
-            
-            <div>
-              <h5 className="text-sm font-medium text-gray-700 mb-1">Additional Information</h5>
-              <p className="text-gray-600 text-sm">{plastic.additionalInfo}</p>
+            <div className="space-y-4">
+              <div className="bg-white bg-opacity-60 p-4 rounded-lg border border-gray-100 shadow-sm">
+                <h5 className={`${colors.text} font-semibold flex items-center gap-2 mb-3`}>
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  Environmental Impact
+                </h5>
+                <p className="text-gray-700 leading-relaxed">{plastic.environmentalImpact}</p>
+              </div>
+              
+              <div className="bg-white bg-opacity-60 p-4 rounded-lg border border-gray-100 shadow-sm">
+                <h5 className={`${colors.text} font-semibold flex items-center gap-2 mb-3`}>
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  Additional Information
+                </h5>
+                <p className="text-gray-700 leading-relaxed">{plastic.additionalInfo}</p>
+              </div>
             </div>
           </div>
         </div>
-      </div>
-    ));
+      );
+    });
   };
 
   return (
@@ -273,9 +403,14 @@ export default function PlasticAnalysis() {
 
           {analysisResult && (
             <div className="mt-8 border-t pt-6">
-              <h3 className="text-xl font-semibold text-gray-800 mb-4 text-center">Plastic Analysis Results</h3>
-              <div className="bg-gray-50 p-6 rounded-lg">
-                <div className="space-y-4">
+              <h3 className="text-xl font-semibold text-gray-800 mb-4 text-center flex items-center justify-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                </svg>
+                Plastic Analysis Results
+              </h3>
+              <div className="bg-gradient-to-br from-white to-purple-50 p-6 rounded-xl shadow-md border border-purple-100">
+                <div className="space-y-6">
                   {renderPlasticAnalysis()}
                 </div>
               </div>
