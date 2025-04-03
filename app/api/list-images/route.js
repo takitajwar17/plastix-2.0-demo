@@ -20,7 +20,7 @@ export async function GET() {
     const shuffledImages = [...imageFiles].sort(() => Math.random() - 0.5);
     
     // Take the first 4 images after shuffling and map them to numbers 1-4
-    const randomNumberedFiles = shuffledImages.slice(0, 4).map((file, index) => `${index + 1}-${file}`);
+    const randomNumberedFiles = shuffledImages.slice(0, 4).map((file, index) => `image-${index + 1}${path.extname(file)}`);
     
     return NextResponse.json({
       images: randomNumberedFiles
