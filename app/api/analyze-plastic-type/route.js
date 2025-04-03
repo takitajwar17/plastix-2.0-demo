@@ -27,18 +27,7 @@ export async function POST(request) {
     const uniqueId = uuidv4();
     const filename = `${uniqueId}.png`;
 
-    // Ensure the uploads directory exists
-    const uploadDir = join(process.cwd(), 'public', 'uploads');
-    try {
-      await mkdir(uploadDir, { recursive: true });
-    } catch (err) {
-      // Directory might already exist, ignore this error
-      if (err.code !== 'EEXIST') throw err;
-    }
 
-    // Save the uploaded image
-    const imagePath = join(uploadDir, filename);
-    await writeFile(imagePath, buffer);
 
     // Convert buffer to base64 for OpenAI API
     const base64Image = buffer.toString('base64');
