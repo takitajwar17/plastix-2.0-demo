@@ -1,8 +1,5 @@
 import { NextResponse } from 'next/server';
-import { writeFile } from 'fs/promises';
-import { join } from 'path';
 import { v4 as uuidv4 } from 'uuid';
-import { mkdir } from 'fs/promises';
 import sharp from 'sharp';
 
 export async function POST(request) {
@@ -23,32 +20,99 @@ export async function POST(request) {
     const bytes = await image.arrayBuffer();
     const buffer = Buffer.from(bytes);
     
-    // Convert image to RGBA format using Sharp
-    const rgbaBuffer = await sharp(buffer)
-      .toFormat('png')
-      .ensureAlpha() // Ensure image has alpha channel (RGBA)
-      .toBuffer();
-
-    // Generate a unique filename
-    const uniqueId = uuidv4();
-    const filename = `${uniqueId}.png`;
-
-    // Ensure the uploads directory exists
-    const uploadDir = join(process.cwd(), 'public', 'uploads');
+    // Process the image with sharp to ensure it's a valid PNG
+    // This will convert any image format (JPG, JPEG, etc.) to PNG
+    // and ensure it meets OpenAI's requirements
+    let processedBuffer;
+    // Declare metadata variable outside the try block so it's accessible throughout the function
+    let metadata;
     try {
-      await mkdir(uploadDir, { recursive: true });
+      // Get image metadata to determine dimensions
+      metadata = await sharp(buffer).metadata();
+      
+      // Process the image: convert to PNG, resize if needed, and optimize
+      processedBuffer = await sharp(buffer)
+        // Ensure the image has proper color space
+        .toColorspace('srgb')
+        // Resize if the image is too large (keeping aspect ratio)
+        .resize({
+          width: Math.min(metadata.width, 1024),
+          height: Math.min(metadata.height, 1024),
+          fit: 'inside',
+          withoutEnlargement: true
+        })
+        // Convert to PNG format with appropriate settings
+        .png({
+          quality: 90,
+          compressionLevel: 9,
+          adaptiveFiltering: true,
+          force: true
+        })
+        .toBuffer();
+      
+      // Verify the processed image size is under 4MB
+      if (processedBuffer.length > 4 * 1024 * 1024) {
+        // If still too large, compress more aggressively
+        processedBuffer = await sharp(processedBuffer)
+          .resize({
+            width: Math.min(metadata.width, 768),
+            height: Math.min(metadata.height, 768),
+            fit: 'inside'
+          })
+          .png({ quality: 80, compressionLevel: 9 })
+          .toBuffer();
+      }
+      
+      // Get updated metadata after processing
+      metadata = await sharp(processedBuffer).metadata();
+      console.log('Processed image:', {
+        format: metadata.format,
+        width: metadata.width,
+        height: metadata.height,
+        size: `${(processedBuffer.length / 1024 / 1024).toFixed(2)}MB`
+      });      
     } catch (err) {
-      // Directory might already exist, ignore this error
-      if (err.code !== 'EEXIST') throw err;
+      console.error('Error processing image with sharp:', err);
+      return NextResponse.json(
+        { error: 'Failed to process image: ' + err.message },
+        { status: 500 }
+      );
     }
-
-    // Save the uploaded image
-    const imagePath = join(uploadDir, filename);
-    await writeFile(imagePath, buffer);
+    
+    // Generate a unique ID for reference (not used for file storage)
+    const uniqueId = uuidv4();
+    
+    // Create a mask image that is completely transparent (alpha=0) everywhere
+    // This tells DALL-E to consider the entire image as editable
+    const maskBuffer = await sharp({
+      create: {
+        width: metadata.width,
+        height: metadata.height,
+        channels: 4,
+        background: { r: 0, g: 0, b: 0, alpha: 0 }
+      }
+    })
+    .png({
+      force: true
+    })
+    .toBuffer();
 
     // Call OpenAI API to generate clean image
     console.log('Sending request to OpenAI API with prompt:', prompt);
-    const openaiFormData = createFormData(rgbaBuffer, prompt);
+    
+    const openaiFormData = new FormData();
+    
+    // Add the processed image
+    openaiFormData.append('image', new Blob([processedBuffer], { type: 'image/png' }), 'image.png');
+    
+    // Add the mask image
+    openaiFormData.append('mask', new Blob([maskBuffer], { type: 'image/png' }), 'mask.png');
+    
+    // Add other parameters
+    openaiFormData.append('prompt', prompt || 'Detect and remove all the plastic from this image.');
+    openaiFormData.append('model', 'dall-e-2');
+    openaiFormData.append('n', '1');
+    openaiFormData.append('size', '1024x1024');
     
     const openaiResponse = await fetch('https://api.openai.com/v1/images/edits', {
       method: 'POST',
@@ -78,28 +142,13 @@ export async function POST(request) {
     
     return NextResponse.json({
       url: data.data[0].url,
-      original: `/uploads/${filename}`,
+      requestId: uniqueId // Return the unique ID for reference instead of file paths
     });
   } catch (error) {
     console.error('Error processing image:', error);
     return NextResponse.json(
-      { error: 'Failed to process image' },
+      { error: 'Failed to process image: ' + error.message },
       { status: 500 }
     );
   }
-}
-
-// Helper function to create form data for OpenAI API
-function createFormData(imageBuffer, prompt) {
-  const formData = new FormData();
-  
-  // Convert buffer to blob with proper RGBA format
-  const blob = new Blob([imageBuffer], { type: 'image/png' });
-  formData.append('image', blob, 'image.png');
-  formData.append('prompt', prompt || 'Show this environment without any plastic pollution, clean and pristine nature');
-  formData.append('model', 'dall-e-2');
-  formData.append('n', '1');
-  formData.append('size', '1024x1024');
-  
-  return formData;
 }

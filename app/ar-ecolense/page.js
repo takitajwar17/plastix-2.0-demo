@@ -32,12 +32,7 @@ export default function AREcoLense() {
       return;
     }
 
-    // Check if file is PNG format
-    if (file.type !== 'image/png') {
-      setError("Please upload a PNG image");
-      return;
-    }
-
+    // Now accepting all image formats - sharp will convert to PNG on the server
     setImage(file);
     const objectUrl = URL.createObjectURL(file);
     setPreviewUrl(objectUrl);
@@ -57,9 +52,9 @@ export default function AREcoLense() {
       // Create form data
       const formData = new FormData();
       formData.append("image", image);
-      formData.append("prompt", "Show this environment without any plastic pollution, clean and pristine nature");
+      formData.append("prompt", "Detect and remove all the plastic from this image.");
 
-      // Send to OpenAI API
+      // Send to API
       const response = await fetch("/api/generate-clean-image", {
         method: "POST",
         body: formData,
@@ -71,7 +66,7 @@ export default function AREcoLense() {
       }
 
       const data = await response.json();
-      console.log('Client received OpenAI response:', data);
+      console.log('Client received response:', data);
       setResultImage(data.url);
     } catch (err) {
       console.error("Error processing image:", err);
@@ -120,7 +115,7 @@ export default function AREcoLense() {
                 type="file" 
                 ref={fileInputRef}
                 onChange={handleImageChange} 
-                accept="image/png" 
+                accept="image/*" 
                 className="hidden" 
               />
               
@@ -130,7 +125,7 @@ export default function AREcoLense() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                   </svg>
                   <p className="text-sm text-gray-500">Click to upload an image or drag and drop</p>
-                  <p className="text-xs text-gray-400 mt-1">PNG format only, up to 4MB</p>
+                  <p className="text-xs text-gray-400 mt-1">Image up to 4MB</p>
                 </div>
               ) : (
                 <div className="relative w-full h-64">
@@ -184,25 +179,41 @@ export default function AREcoLense() {
           {resultImage && (
             <div className="mt-8 border-t pt-6">
               <h3 className="text-xl font-semibold text-gray-800 mb-4 text-center">Result: Environment Without Pollution</h3>
-              <div className="bg-gray-50 p-4 rounded-lg">
-                <div className="relative w-full h-80">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img 
-                    src={resultImage} 
-                    alt="Clean Environment" 
-                    className="w-full h-full object-contain" 
-                  />
-                </div>
-                <div className="mt-4 text-center">
-                  <a 
-                    href={resultImage} 
-                    download={`clean-environment-${uuidv4().substring(0, 8)}.png`}
-                    className="text-blue-500 hover:text-blue-700 transition-colors"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    Download Image
-                  </a>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {previewUrl && (
+                  <div className="bg-gray-50 p-4 rounded-lg">
+                    <h4 className="text-sm font-medium text-gray-600 mb-2">Original Image</h4>
+                    <div className="relative w-full h-64">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img 
+                        src={previewUrl} 
+                        alt="Original Environment" 
+                        className="w-full h-full object-contain" 
+                      />
+                    </div>
+                  </div>
+                )}
+                <div className="bg-gray-50 p-4 rounded-lg">
+                  <h4 className="text-sm font-medium text-gray-600 mb-2">Clean Environment</h4>
+                  <div className="relative w-full h-64">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img 
+                      src={resultImage} 
+                      alt="Clean Environment" 
+                      className="w-full h-full object-contain" 
+                    />
+                  </div>
+                  <div className="mt-4 text-center">
+                    <a 
+                      href={resultImage} 
+                      download={`clean-environment-${uuidv4().substring(0, 8)}.png`}
+                      className="text-blue-500 hover:text-blue-700 transition-colors"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      Download Image
+                    </a>
+                  </div>
                 </div>
               </div>
             </div>
