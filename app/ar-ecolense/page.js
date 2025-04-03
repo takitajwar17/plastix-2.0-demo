@@ -10,16 +10,35 @@ export default function AREcoLense() {
   const [showCleanImage, setShowCleanImage] = useState(false);
   const progressIntervalRef = useRef(null);
   
-  // Available polluted images
-  const allPollutedImages = [
-    { id: 1, src: "/assets/raw/image-1.jpg", cleanSrc: "/assets/clean/image-1.jpg" },
-    { id: 2, src: "/assets/raw/image-2.jpg", cleanSrc: "/assets/clean/image-2.jpg" },
-    { id: 3, src: "/assets/raw/image-3.jpg", cleanSrc: "/assets/clean/image-3.jpg" },
-    { id: 4, src: "/assets/raw/image-4.jpg", cleanSrc: "/assets/clean/image-4.jpg" },
-    { id: 5, src: "/assets/raw/image-5.jpg", cleanSrc: "/assets/clean/image-5.jpg" },
-    { id: 6, src: "/assets/raw/image-6.jpg", cleanSrc: "/assets/clean/image-6.jpg" },
-    { id: 7, src: "/assets/raw/image-7.jpg", cleanSrc: "/assets/clean/image-7.jpg" }
-  ];
+  // Dynamically load available images
+  const [allPollutedImages, setAllPollutedImages] = useState([]);
+
+  useEffect(() => {
+    // Function to load available images
+    const loadAvailableImages = async () => {
+      try {
+        // Make a request to get the list of files in the raw directory
+        const response = await fetch('/api/list-images');
+        const data = await response.json();
+        
+        if (data.images) {
+          // Create image pairs from the available images
+          const imagePairs = data.images.map((filename, index) => ({
+            id: index + 1,
+            src: `/assets/raw/${filename}`,
+            cleanSrc: `/assets/clean/${filename}`
+          }));
+          setAllPollutedImages(imagePairs);
+        }
+      } catch (error) {
+        console.error('Error loading images:', error);
+        // Fallback to empty array if loading fails
+        setAllPollutedImages([]);
+      }
+    };
+
+    loadAvailableImages();
+  }, []);
 
   // Randomly select 3 images
   const pollutedImages = [...allPollutedImages]
