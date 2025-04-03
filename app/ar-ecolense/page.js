@@ -1,8 +1,6 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import Image from "next/image";
-import { v4 as uuidv4 } from "uuid";
 
 export default function AREcoLense() {
   const [selectedImage, setSelectedImage] = useState(null);
@@ -18,7 +16,7 @@ export default function AREcoLense() {
     { id: 2, src: "/assets/raw/image-2.png", cleanSrc: "/assets/clean/image-1.png" } // Using image-1 as clean for both as per requirements
   ];
 
-  // Function to simulate progress with varying speeds
+  // Function to simulate progress with varying speeds - reduced to 10-15 seconds total
   const simulateProgress = () => {
     // Clear any existing interval
     if (progressIntervalRef.current) {
@@ -31,6 +29,7 @@ export default function AREcoLense() {
     setShowCleanImage(false);
     
     // Create a new interval that updates progress with varying speeds
+    // Increased increment values and reduced interval time for faster processing (10-15 seconds)
     progressIntervalRef.current = setInterval(() => {
       setLoadingProgress(prevProgress => {
         // Different speed ranges for different progress stages
@@ -38,23 +37,23 @@ export default function AREcoLense() {
         
         if (prevProgress < 20) {
           // Fast initial progress
-          increment = Math.random() * 1.5 + 0.5;
+          increment = Math.random() * 3 + 1.5;
           setProgressText("Analyzing pollution patterns...");
         } else if (prevProgress < 40) {
-          // Slower
-          increment = Math.random() * 0.8 + 0.2;
+          // Faster than before
+          increment = Math.random() * 2.5 + 1;
           setProgressText("Identifying plastic types...");
         } else if (prevProgress < 60) {
-          // Even slower
-          increment = Math.random() * 0.6 + 0.1;
+          // Still relatively fast
+          increment = Math.random() * 2 + 0.8;
           setProgressText("Calculating environmental impact...");
         } else if (prevProgress < 80) {
-          // Slowest
-          increment = Math.random() * 0.4 + 0.1;
+          // Moderate speed
+          increment = Math.random() * 1.5 + 0.5;
           setProgressText("Generating clean environment visualization...");
         } else if (prevProgress < 95) {
           // Final stage
-          increment = Math.random() * 0.3 + 0.05;
+          increment = Math.random() * 1 + 0.3;
           setProgressText("Finalizing AR transformation...");
         } else {
           // Complete
@@ -66,7 +65,7 @@ export default function AREcoLense() {
         
         return Math.min(prevProgress + increment, 95);
       });
-    }, 200); // Update every 200ms
+    }, 150); // Update every 100ms for faster progress (10-15 seconds total)
   };
   
   // Clean up interval on component unmount
@@ -178,34 +177,49 @@ export default function AREcoLense() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                 <div className="bg-gray-50 p-4 rounded-lg">
                   <h4 className="text-sm font-medium text-gray-600 mb-2">Original Image</h4>
-                  <div className="relative w-full h-64">
+                  <div className="relative w-full h-64 flex justify-center items-center">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img 
                       src={selectedImage.src} 
                       alt="Original Environment" 
-                      className="w-full h-full object-contain"
+                      className="h-full object-contain mx-auto"
                     />
                   </div>
                 </div>
                 <div className="bg-gray-50 p-4 rounded-lg">
                   <h4 className="text-sm font-medium text-gray-600 mb-2">Clean Environment</h4>
-                  <div className="relative w-full h-64 overflow-hidden">
+                  <div className="relative w-full h-64 overflow-hidden flex justify-center items-center">
                     {showCleanImage ? (
-                      <div 
-                        className="w-full" 
-                        style={{
-                          height: `${loadingProgress}%`,
-                          transition: 'height 0.5s ease-out',
-                          overflow: 'hidden'
-                        }}
-                      >
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img 
-                          src={selectedImage.cleanSrc} 
-                          alt="Clean Environment" 
-                          className="w-full h-64 object-contain transform-origin-top"
-                          style={{ objectPosition: 'top' }}
-                        />
+                      <div className="h-full w-full relative flex justify-center items-center">
+                        <div className="h-full w-full absolute inset-0 flex justify-center items-center">
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img 
+                            src={selectedImage.cleanSrc} 
+                            alt="Clean Environment" 
+                            className="h-full object-contain mx-auto"
+                          />
+                        </div>
+                        {/* Create a pixel-by-pixel top-to-bottom reveal effect */}
+                        <div className="absolute inset-0 overflow-hidden">
+                          {/* The image container with a mask that reveals gradually */}
+                          <div className="relative w-full h-full">
+                            {/* Create a mask with rows that will reveal the image gradually */}
+                            {Array.from({ length: 100 }).map((_, rowIndex) => (
+                              <div 
+                                key={`reveal-row-${rowIndex}`}
+                                className="absolute left-0 right-0 bg-white" 
+                                style={{
+                                  height: '1%',
+                                  top: `${rowIndex * 1}%`,
+                                  transform: loadingProgress === 100 ? 'translateX(-101%)' : 'translateX(0)',
+                                  transition: 'transform 0.2s ease-out',
+                                  transitionDelay: `${0.5 + (rowIndex * 0.01)}s`,
+                                  zIndex: 10
+                                }}
+                              ></div>
+                            ))}
+                          </div>
+                        </div>
                       </div>
                     ) : (
                       <div className="w-full h-full flex items-center justify-center bg-gray-200">
