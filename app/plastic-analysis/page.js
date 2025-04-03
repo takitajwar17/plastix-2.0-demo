@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import Image from "next/image";
 import { v4 as uuidv4 } from "uuid";
 
@@ -10,7 +10,10 @@ export default function PlasticAnalysis() {
   const [analysisResult, setAnalysisResult] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [progress, setProgress] = useState(0);
+  const [progressText, setProgressText] = useState("");
   const fileInputRef = useRef(null);
+  const progressIntervalRef = useRef(null);
 
   const handleImageChange = (e) => {
     const file = e.target.files[0];
@@ -37,6 +40,63 @@ export default function PlasticAnalysis() {
     setPreviewUrl(objectUrl);
   };
 
+  // Function to simulate progress with varying speeds
+  const simulateProgress = () => {
+    // Clear any existing interval
+    if (progressIntervalRef.current) {
+      clearInterval(progressIntervalRef.current);
+    }
+    
+    // Reset progress
+    setProgress(0);
+    setProgressText("Preparing image for analysis...");
+    
+    // Create a new interval that updates progress with varying speeds
+    progressIntervalRef.current = setInterval(() => {
+      setProgress(prevProgress => {
+        // Different speed ranges for different progress stages
+        let increment;
+        
+        if (prevProgress < 20) {
+          // Fast initial progress - uploading image
+          increment = Math.random() * 1.5 + 0.5;
+          setProgressText("Uploading image...");
+        } else if (prevProgress < 40) {
+          // Slower - preprocessing image
+          increment = Math.random() * 0.8 + 0.2;
+          setProgressText("Preprocessing image...");
+        } else if (prevProgress < 60) {
+          // Even slower - analyzing plastic composition
+          increment = Math.random() * 0.6 + 0.1;
+          setProgressText("Analyzing plastic composition...");
+        } else if (prevProgress < 80) {
+          // Slowest - identifying recycling code
+          increment = Math.random() * 0.4 + 0.1;
+          setProgressText("Identifying recycling code...");
+        } else if (prevProgress < 95) {
+          // Final stage - generating report
+          increment = Math.random() * 0.3 + 0.05;
+          setProgressText("Generating detailed report...");
+        } else {
+          // Stop at 95% - the actual API response will complete it
+          clearInterval(progressIntervalRef.current);
+          return 95;
+        }
+        
+        return Math.min(prevProgress + increment, 95);
+      });
+    }, 200); // Update every 200ms
+  };
+  
+  // Clean up interval on component unmount
+  useEffect(() => {
+    return () => {
+      if (progressIntervalRef.current) {
+        clearInterval(progressIntervalRef.current);
+      }
+    };
+  }, []);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!image) {
@@ -46,6 +106,9 @@ export default function PlasticAnalysis() {
 
     setIsLoading(true);
     setError(null);
+    
+    // Start progress simulation
+    simulateProgress();
 
     try {
       // Create form data
@@ -66,6 +129,11 @@ export default function PlasticAnalysis() {
 
       const data = await response.json();
       console.log('Client received plastic analysis:', data);
+      
+      // Complete the progress bar
+      clearInterval(progressIntervalRef.current);
+      setProgress(100);
+      setProgressText("Analysis complete!");
       
       // Try to parse the analysis as JSON
       try {
@@ -111,7 +179,14 @@ export default function PlasticAnalysis() {
       console.error("Error analyzing image:", err);
       setError(err.message || "Failed to analyze image");
     } finally {
-      setIsLoading(false);
+      setTimeout(() => {
+        setIsLoading(false);
+        // Reset progress after a short delay to show the completed state
+        setTimeout(() => {
+          setProgress(0);
+          setProgressText("");
+        }, 1000);
+      }, 500);
     }
   };
 
@@ -399,6 +474,22 @@ export default function PlasticAnalysis() {
                 ) : 'Analyze Plastic Type'}
               </button>
             </div>
+            
+            {/* Progress bar */}
+            {isLoading && (
+              <div className="mt-6 w-full">
+                <div className="flex justify-between items-center mb-2">
+                  <span className="text-sm font-medium text-purple-700">{progressText}</span>
+                  <span className="text-sm font-medium text-purple-700">{Math.round(progress)}%</span>
+                </div>
+                <div className="w-full bg-gray-200 rounded-full h-2.5">
+                  <div 
+                    className="bg-purple-600 h-2.5 rounded-full transition-all duration-300 ease-in-out" 
+                    style={{ width: `${progress}%` }}
+                  ></div>
+                </div>
+              </div>
+            )}
           </form>
 
           {analysisResult && (
