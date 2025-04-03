@@ -1,88 +1,104 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import Image from "next/image";
 import { v4 as uuidv4 } from "uuid";
 
 export default function AREcoLense() {
-  const [image, setImage] = useState(null);
-  const [previewUrl, setPreviewUrl] = useState(null);
-  const [resultImage, setResultImage] = useState(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState(null);
-  const fileInputRef = useRef(null);
+  const [selectedImage, setSelectedImage] = useState(null);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [loadingProgress, setLoadingProgress] = useState(0);
+  const [progressText, setProgressText] = useState("");
+  const [showCleanImage, setShowCleanImage] = useState(false);
+  const progressIntervalRef = useRef(null);
+  
+  // Available polluted images
+  const pollutedImages = [
+    { id: 1, src: "/assets/raw/image-1.png", cleanSrc: "/assets/clean/image-1.png" },
+    { id: 2, src: "/assets/raw/image-2.png", cleanSrc: "/assets/clean/image-1.png" } // Using image-1 as clean for both as per requirements
+  ];
 
-  const handleImageChange = (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-
-    // Reset states
-    setError(null);
-    setResultImage(null);
+  // Function to simulate progress with varying speeds
+  const simulateProgress = () => {
+    // Clear any existing interval
+    if (progressIntervalRef.current) {
+      clearInterval(progressIntervalRef.current);
+    }
     
-    // Check if file is an image
-    if (!file.type.startsWith('image/')) {
-      setError("Please upload an image file");
-      return;
-    }
-
-    // Check file size (4MB max for OpenAI API)
-    if (file.size > 4 * 1024 * 1024) {
-      setError("Image size must be less than 4MB");
-      return;
-    }
-
-    // Now accepting all image formats - sharp will convert to PNG on the server
-    setImage(file);
-    const objectUrl = URL.createObjectURL(file);
-    setPreviewUrl(objectUrl);
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (!image) {
-      setError("Please select an image first");
-      return;
-    }
-
-    setIsLoading(true);
-    setError(null);
-
-    try {
-      // Create form data
-      const formData = new FormData();
-      formData.append("image", image);
-      formData.append("prompt", "Detect and remove all the plastic from this image.");
-
-      // Send to API
-      const response = await fetch("/api/generate-clean-image", {
-        method: "POST",
-        body: formData,
+    // Reset progress
+    setLoadingProgress(0);
+    setProgressText("Initializing AR EcoLens...");
+    setShowCleanImage(false);
+    
+    // Create a new interval that updates progress with varying speeds
+    progressIntervalRef.current = setInterval(() => {
+      setLoadingProgress(prevProgress => {
+        // Different speed ranges for different progress stages
+        let increment;
+        
+        if (prevProgress < 20) {
+          // Fast initial progress
+          increment = Math.random() * 1.5 + 0.5;
+          setProgressText("Analyzing pollution patterns...");
+        } else if (prevProgress < 40) {
+          // Slower
+          increment = Math.random() * 0.8 + 0.2;
+          setProgressText("Identifying plastic types...");
+        } else if (prevProgress < 60) {
+          // Even slower
+          increment = Math.random() * 0.6 + 0.1;
+          setProgressText("Calculating environmental impact...");
+        } else if (prevProgress < 80) {
+          // Slowest
+          increment = Math.random() * 0.4 + 0.1;
+          setProgressText("Generating clean environment visualization...");
+        } else if (prevProgress < 95) {
+          // Final stage
+          increment = Math.random() * 0.3 + 0.05;
+          setProgressText("Finalizing AR transformation...");
+        } else {
+          // Complete
+          clearInterval(progressIntervalRef.current);
+          setProgressText("Transformation complete!");
+          setShowCleanImage(true);
+          return 100;
+        }
+        
+        return Math.min(prevProgress + increment, 95);
       });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "Failed to process image");
+    }, 200); // Update every 200ms
+  };
+  
+  // Clean up interval on component unmount
+  useEffect(() => {
+    return () => {
+      if (progressIntervalRef.current) {
+        clearInterval(progressIntervalRef.current);
       }
+    };
+  }, []);
 
-      const data = await response.json();
-      console.log('Client received response:', data);
-      setResultImage(data.url);
-    } catch (err) {
-      console.error("Error processing image:", err);
-      setError(err.message || "Failed to process image");
-    } finally {
-      setIsLoading(false);
-    }
+  const handleImageSelect = (image) => {
+    setSelectedImage(image);
+    setShowCleanImage(false);
   };
 
-  const resetForm = () => {
-    setImage(null);
-    setPreviewUrl(null);
-    setResultImage(null);
-    setError(null);
-    if (fileInputRef.current) {
-      fileInputRef.current.value = "";
+  const handleProcessImage = () => {
+    if (!selectedImage) return;
+    
+    setIsProcessing(true);
+    // Start progress simulation
+    simulateProgress();
+  };
+
+  const resetDemo = () => {
+    setSelectedImage(null);
+    setIsProcessing(false);
+    setLoadingProgress(0);
+    setProgressText("");
+    setShowCleanImage(false);
+    if (progressIntervalRef.current) {
+      clearInterval(progressIntervalRef.current);
     }
   };
 
@@ -105,117 +121,127 @@ export default function AREcoLense() {
           <h2 className="text-2xl font-bold text-center text-gray-800 mb-6">Visualize Environments Without Plastic Pollution</h2>
           
           <p className="text-gray-600 mb-6 text-center">
-            Upload an image of an environment with plastic pollution, and our AI will show you how it would look clean and pristine.
+            Select an image of an environment with plastic pollution, and our AI will show you how it would look clean and pristine.
           </p>
 
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="flex flex-col items-center justify-center border-2 border-dashed border-gray-300 rounded-lg p-6 cursor-pointer hover:bg-gray-50 transition-colors"
-                 onClick={() => fileInputRef.current?.click()}>
-              <input 
-                type="file" 
-                ref={fileInputRef}
-                onChange={handleImageChange} 
-                accept="image/*" 
-                className="hidden" 
-              />
-              
-              {!previewUrl ? (
-                <div className="text-center">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 text-gray-400 mx-auto mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                  </svg>
-                  <p className="text-sm text-gray-500">Click to upload an image or drag and drop</p>
-                  <p className="text-xs text-gray-400 mt-1">Image up to 4MB</p>
-                </div>
-              ) : (
-                <div className="relative w-full h-64">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img 
-                    src={previewUrl} 
-                    alt="Preview" 
-                    className="w-full h-full object-contain" 
-                  />
-                  <button 
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      resetForm();
-                    }} 
-                    className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600 transition-colors"
-                  >
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                      <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
-                    </svg>
-                  </button>
-                </div>
-              )}
-            </div>
-
-            {error && (
-              <div className="bg-red-50 text-red-500 p-3 rounded-lg text-center">
-                {error}
-              </div>
-            )}
-
-            <div className="flex justify-center">
-              <button 
-                type="submit" 
-                disabled={!image || isLoading}
-                className={`px-6 py-3 rounded-full font-medium ${!image || isLoading ? 'bg-gray-300 cursor-not-allowed' : 'bg-green-500 hover:bg-green-600 text-white'} transition-colors`}
-              >
-                {isLoading ? (
-                  <span className="flex items-center">
-                    <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                    </svg>
-                    Processing...
-                  </span>
-                ) : 'Visualize Clean Environment'}
-              </button>
-            </div>
-          </form>
-
-          {resultImage && (
-            <div className="mt-8 border-t pt-6">
-              <h3 className="text-xl font-semibold text-gray-800 mb-4 text-center">Result: Environment Without Pollution</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {previewUrl && (
-                  <div className="bg-gray-50 p-4 rounded-lg">
-                    <h4 className="text-sm font-medium text-gray-600 mb-2">Original Image</h4>
-                    <div className="relative w-full h-64">
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img 
-                        src={previewUrl} 
-                        alt="Original Environment" 
-                        className="w-full h-full object-contain" 
-                      />
-                    </div>
+          {!selectedImage && !isProcessing ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+              {pollutedImages.map((image) => (
+                <div 
+                  key={image.id} 
+                  className={`border-2 rounded-lg p-2 cursor-pointer hover:border-green-500 transition-all`}
+                  onClick={() => handleImageSelect(image)}
+                >
+                  <div className="relative w-full h-48">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img 
+                      src={image.src} 
+                      alt={`Polluted Environment ${image.id}`} 
+                      className="w-full h-full object-cover rounded"
+                    />
                   </div>
-                )}
+                  <p className="text-center mt-2 text-sm text-gray-600">Polluted Image {image.id}</p>
+                </div>
+              ))}
+            </div>
+          ) : null}
+
+          {selectedImage && !isProcessing ? (
+            <div className="mb-6">
+              <div className="relative w-full h-64 mb-4">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img 
+                  src={selectedImage.src} 
+                  alt="Selected Polluted Environment" 
+                  className="w-full h-full object-contain rounded-lg"
+                />
+              </div>
+              <div className="flex justify-between">
+                <button 
+                  onClick={resetDemo}
+                  className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors"
+                >
+                  Back to Selection
+                </button>
+                <button 
+                  onClick={handleProcessImage}
+                  className="px-6 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors"
+                >
+                  Process Image
+                </button>
+              </div>
+            </div>
+          ) : null}
+
+          {isProcessing && (
+            <div className="mb-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                 <div className="bg-gray-50 p-4 rounded-lg">
-                  <h4 className="text-sm font-medium text-gray-600 mb-2">Clean Environment</h4>
+                  <h4 className="text-sm font-medium text-gray-600 mb-2">Original Image</h4>
                   <div className="relative w-full h-64">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img 
-                      src={resultImage} 
-                      alt="Clean Environment" 
-                      className="w-full h-full object-contain" 
+                      src={selectedImage.src} 
+                      alt="Original Environment" 
+                      className="w-full h-full object-contain"
                     />
                   </div>
-                  <div className="mt-4 text-center">
-                    <a 
-                      href={resultImage} 
-                      download={`clean-environment-${uuidv4().substring(0, 8)}.png`}
-                      className="text-blue-500 hover:text-blue-700 transition-colors"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      Download Image
-                    </a>
+                </div>
+                <div className="bg-gray-50 p-4 rounded-lg">
+                  <h4 className="text-sm font-medium text-gray-600 mb-2">Clean Environment</h4>
+                  <div className="relative w-full h-64 overflow-hidden">
+                    {showCleanImage ? (
+                      <div 
+                        className="w-full" 
+                        style={{
+                          height: `${loadingProgress}%`,
+                          transition: 'height 0.5s ease-out',
+                          overflow: 'hidden'
+                        }}
+                      >
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img 
+                          src={selectedImage.cleanSrc} 
+                          alt="Clean Environment" 
+                          className="w-full h-64 object-contain transform-origin-top"
+                          style={{ objectPosition: 'top' }}
+                        />
+                      </div>
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center bg-gray-200">
+                        <div className="text-center">
+                          <svg className="animate-spin h-10 w-10 text-green-500 mx-auto mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                          </svg>
+                          <p className="text-sm text-gray-600">{progressText}</p>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
+              
+              {/* Progress bar */}
+              <div className="mb-4">
+                <div className="flex justify-between text-sm text-gray-600 mb-1">
+                  <span>Processing...</span>
+                  <span>{loadingProgress}%</span>
+                </div>
+                <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
+                  <div 
+                    className="h-full bg-green-500 transition-all duration-300 ease-out"
+                    style={{ width: `${loadingProgress}%` }}
+                  ></div>
+                </div>
+              </div>
+              
+              <button 
+                onClick={resetDemo}
+                className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors"
+              >
+                Start Over
+              </button>
             </div>
           )}
         </div>
